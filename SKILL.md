@@ -1,6 +1,6 @@
 ---
 name: 2ryun-api-cn
-description: Use when the user wants to import documents, build a knowledge base, search structured knowledge, generate web pages from content, or publish them. Use when the user mentions 2Ryun, 第二现实, knowledge base, 知识库, 文档管理, 知识图谱, 网页, 发布. 2Ryun is an AI-era knowledge/content platform where knowledge extraction from documents happens automatically once enabled — the agent's role is to decide which documents should enter the knowledge base and which should not.
+description: 当用户想导入文档、构建知识库、搜索结构化知识、从内容生成网页或发布内容时使用。当用户提到 2Ryun、第二现实、知识库、文档管理、知识图谱、网页、发布时使用。2Ryun 是 AI 时代的知识/内容平台，文档启用知识提取后自动在后台完成提取、组织、关联——Agent 的职责是判断哪些文档应进入知识库、哪些不应进入。
 ---
 
 # 2Ryun — AI 时代知识/内容底座

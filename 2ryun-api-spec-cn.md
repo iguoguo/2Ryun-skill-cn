@@ -35,8 +35,6 @@
 | 内容类型 | URL 模式 | 说明 |
 |---------|---------|------|
 | 已发布网页 | `https://www.2ryun.wiki/restapi/gen-html/public/:generation_id` | 单页生成结果 |
-| 已发布站点 | `https://www.2ryun.wiki/s/:site_id` | 站点首页 |
-| 站点内页面 | `https://www.2ryun.wiki/s/:site_id/:slug` | 站点子页面 |
 | 文档页面 | `https://www.2ryun.wiki/app/:doc_id` | 2Ryun 内部文档页（需登录） |
 | 封面图 | `https://www.2ryun.wiki/restapi/gen-html/generations/:id/cover` | JPEG，可嵌入 `<img>` |
 | 模板预览 | `https://www.2ryun.wiki/restapi/gen-html/templates/:name/example` | 模板示例 HTML |
@@ -45,7 +43,6 @@
 **API → URL 映射**：
 
 - `POST /generate` → `generation_id` → 发布后: `restapi/genhtml/public/GEN_ID`
-- `POST /sites` → `site_id` → 发布后: `/s/SITE_ID`
 - `POST /documents/create` → `document`（即 `_id`） → 文档页: `/app/DOC_ID`
 
 **预览（未发布）**：`GET /restapi/gen-html/generations/:id/html` 返回 JSON `{ "html": "..." }`，可自行渲染。
@@ -1168,167 +1165,7 @@ PATCH /restapi/gen-html/generations/:id/cover
 
 ---
 
-### 3.12 创建站点
-
-```
-POST /restapi/gen-html/sites
-```
-
-将一个文档树创建为多页面网站。
-
-**请求体 (JSON)**
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| name | string | 是 | 站点名称 |
-| content_id | string | 否 | 根文档 ID（用于生成网站结构） |
-| root_id | string | 否 | 根文档 ID（同上，兼容别名） |
-| template | string | 否 | 站点模板，默认 `magazine-minimal` |
-| docs | array | 是 | 站点包含的文档数据 |
-| docs[].content_id | string | 是 | 文档 ID |
-| docs[].title | string | 是 | 页面标题 |
-| docs[].content | string | 是 | 文档正文 Markdown |
-| docs[].parent_id | string | 否 | 父文档 ID（用于页面层级） |
-
-**请求示例**
-
-```bash
-curl -X POST https://www.2ryun.wiki/restapi/gen-html/sites \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "我的知识库",
-    "content_id": "6a69810fef276a17f2fb089f",
-    "template": "magazine-minimal",
-    "docs": [
-      {"content_id": "id1", "title": "首页", "content": "# 欢迎\n这是首页", "parent_id": null},
-      {"content_id": "id2", "title": "产品", "content": "# 产品\n产品介绍", "parent_id": "id1"},
-      {"content_id": "id3", "title": "关于", "content": "# 关于\n关于我们", "parent_id": null}
-    ]
-  }'
-```
-
-**返回**
-
-```json
-{
-  "site_id": "6a69810fef276a17f2fb0900",
-  "name": "我的知识库",
-  "pages": [
-    {"slug": "", "title": "首页", "content_id": "id1"},
-    {"slug": "product", "title": "产品", "content_id": "id2", "parent_slug": ""},
-    {"slug": "about", "title": "关于", "content_id": "id3"}
-  ],
-  "template": "magazine-minimal"
-}
-```
-
-| 返回字段 | 类型 | 说明 |
-|----------|------|------|
-| site_id | string | 站点唯一 ID |
-| name | string | 站点名称 |
-| pages | array | 站点包含的页面列表 |
-| pages[].slug | string | URL 路径标识 |
-| pages[].title | string | 页面标题 |
-| pages[].content_id | string | 关联的文档 ID |
-| pages[].parent_slug | string | 父页面 slug |
-
----
-
-### 3.13 站点列表
-
-```
-GET /restapi/gen-html/sites
-```
-
-**返回**
-
-```json
-{
-  "sites": [
-    {
-      "site_id": "6a69810fef276a17f2fb0900",
-      "name": "我的知识库",
-      "root_id": "6a69810fef276a17f2fb089f",
-      "template": "magazine-minimal",
-      "pages_count": 5,
-      "created_at": "2026-07-29T03:00:00.000Z"
-    }
-  ]
-}
-```
-
----
-
-### 3.14 站点详情
-
-```
-GET /restapi/gen-html/sites/:id
-```
-
-返回完整的站点对象，含 `pages` 数组（格式同 3.12 返回）。
-
----
-
-### 3.15 删除站点
-
-```
-DELETE /restapi/gen-html/sites/:id
-```
-
-可选请求体 `{ "delete_pages": true }` 同时删除关联的生成页面。
-
----
-
-### 3.16 重生成站点页面
-
-```
-PUT /restapi/gen-html/sites/:site_id/regenerate-page/:slug
-```
-
-重新生成站点中的某个页面。
-
-**路径参数**：`site_id` — 站点 ID，`slug` — 页面标识
-
-**请求体 (JSON)**
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| content | string | 否 | 页面新内容（不传则用原文档内容） |
-| title | string | 否 | 新标题 |
-| template | string | 否 | 新模板 |
-| custom_requirement | string | 否 | 自定义设计需求 |
-
----
-
-### 3.17 发布 / 取消发布站点
-
-```
-POST /restapi/gen-html/sites/:id/publish
-POST /restapi/gen-html/sites/:id/unpublish
-```
-
-发布后站点可通过 `https://2ryun.com/s/SITE_ID` 访问。
-
----
-
-### 3.18 批量生成页面
-
-```
-POST /restapi/gen-html/sites/:id/pages/batch
-```
-
-为站点批量生成多个页面。
-
-**请求体 (JSON)**
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| docs | array | 是 | 文档数组，每个元素含 `content_id`, `title`, `content` |
-
----
-
-### 3.19 公开访问（无需 API Key）
+### 3.12 公开访问（无需 API Key）
 
 ```
 GET /restapi/gen-html/public/:generation_id
@@ -1653,7 +1490,7 @@ DELETE /restapi/attachments/:id
 
 涉及 AI 调用的接口在用户积分不足时会返回 402。Agent 应正确处理此错误。
 
-**涉及的接口**：`wiki/extract`、`wiki/extract-batch`、`wiki/organize`、`genhtml/generate`、`genhtml/sites`（创建站点时会调 AI）。
+**涉及的接口**：`wiki/extract`、`wiki/extract-batch`、`wiki/organize`、`genhtml/generate`。
 
 **402 错误响应**：
 

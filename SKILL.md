@@ -1,11 +1,11 @@
 ---
 name: 2ryun-api-cn
-description: Use when the user wants to import documents, build a knowledge base, search structured knowledge, generate websites from content, or publish sites. Use when the user mentions 2Ryun, 第二现实, knowledge base, 知识库, 文档管理, 知识图谱, 建站, 发布网站. 2Ryun is an AI-era knowledge/content platform where knowledge extraction from documents happens automatically once enabled — the agent's role is to decide which documents should enter the knowledge base and which should not.
+description: Use when the user wants to import documents, build a knowledge base, search structured knowledge, generate web pages from content, or publish them. Use when the user mentions 2Ryun, 第二现实, knowledge base, 知识库, 文档管理, 知识图谱, 网页, 发布. 2Ryun is an AI-era knowledge/content platform where knowledge extraction from documents happens automatically once enabled — the agent's role is to decide which documents should enter the knowledge base and which should not.
 ---
 
 # 2Ryun — AI 时代知识/内容底座
 
-2Ryun（第二现实）为 AI Agent 提供文档管理、知识库、建站、笔记等能力。所有操作通过 REST API 调用（`Authorization: Bearer <key>` 鉴权，Key 从 2Ryun 设置页获取，格式为 `sk-` 前缀 + 多段随机字符）。
+2Ryun（第二现实）为 AI Agent 提供文档管理、知识库、网页生成、笔记等能力。所有操作通过 REST API 调用（`Authorization: Bearer <key>` 鉴权，Key 从 2Ryun 设置页获取，格式为 `sk-` 前缀 + 多段随机字符）。
 
 **API 技术文档**: `2ryun-api-spec-cn.md` — 完整 endpoint、参数、返回格式。
 
@@ -135,7 +135,7 @@ curl "https://www.2ryun.wiki/restapi/wiki/extracted-status?content_ids=id1,id2" 
 
 ## 能力三：可视化发布
 
-将内容和知识转化为精美网页，构建站点并发布。
+将内容和知识转化为精美网页并发布。
 
 ### 场景 3.1：单篇文档生成网页
 
@@ -144,7 +144,7 @@ curl "https://www.2ryun.wiki/restapi/wiki/extracted-status?content_ids=id1,id2" 
    ```bash
    curl "https://www.2ryun.wiki/restapi/gen-html/templates" -H "Authorization: Bearer $API_KEY"
    ```
-   返回模板名和描述。LLM 根据文档内容判断：长文博客→`article-magazine`，技术文档→`documentation`，产品介绍→`landing-page`，综合站点→`magazine-minimal`。**不要硬编码模板**，始终从接口获取并根据内容匹配。
+   返回模板名和描述。LLM 根据文档内容判断：长文博客→`article-magazine`，技术文档→`documentation`，产品介绍→`landing-page`。**不要硬编码模板**，始终从接口获取并根据内容匹配。
 3. **生成**：
    ```bash
    curl -X POST https://www.2ryun.wiki/restapi/gen-html/generate \
@@ -154,20 +154,7 @@ curl "https://www.2ryun.wiki/restapi/wiki/extracted-status?content_ids=id1,id2" 
 4. 发布：`POST /restapi/gen-html/generations/GEN_ID/publish`
 5. URL：`https://www.2ryun.wiki/restapi/gen-html/public/GEN_ID`
 
-### 场景 3.2：从文档树构建多页面网站
-
-1. 获取文档树：`GET /restapi/documents/fulltree/:rootId`
-2. 创建站点：
-   ```bash
-   curl -X POST https://www.2ryun.wiki/restapi/gen-html/sites \
-     -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" \
-     -d '{"name":"站点名","content_id":"根文档id","template":"magazine-minimal","docs":[...]}'
-   ```
-   `docs` = `[{"content_id":"...","title":"...","content":"...","parent_id":"..."}]`
-3. 发布：`POST /restapi/gen-html/sites/SITE_ID/publish`
-4. URL：`https://www.2ryun.wiki/s/SITE_ID`
-
-### 场景 3.3：知识搜索 + 生成网页报告
+### 场景 3.2：知识搜索 + 生成网页报告
 
 1. 搜索：`GET /restapi/wiki/search?q=主题&max_results=10`
 2. 汇总搜索结果为一篇 Markdown 报告
@@ -277,8 +264,7 @@ curl -X POST https://www.2ryun.wiki/restapi/attachments/upload/multiple \
 | 查询积分 | `GET /restapi/users/quota` | 积分、配额、有效期 |
 | 生成网页 | `POST /restapi/gen-html/generate` | 30-120s |
 | 聊天编辑 | `POST /restapi/gen-html/generations/:id/chat` | 对话式编辑网页 |
-| 创建站点 | `POST /restapi/gen-html/sites` | 从文档树构建 |
-| 发布 | `POST /restapi/gen-html/*/publish` | 获取公开 URL |
+| 发布 | `POST /restapi/gen-html/generations/:id/publish` | 获取公开 URL |
 | 上传素材 | `POST /restapi/attachments/upload` | 图片/视频/文档，返回可访问 URL |
 
 ## 重要细节
